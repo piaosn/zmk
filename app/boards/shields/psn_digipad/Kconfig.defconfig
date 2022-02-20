@@ -1,18 +1,9 @@
-if SHIELD_CORNE_LEFT
+if SHIELD_PSN_DIGIPAD
+
 
 config ZMK_KEYBOARD_NAME
-	default "Corne"
+	default "PsnDigipad"
 
-config ZMK_SPLIT_BLE_ROLE_CENTRAL
-	default y
-
-endif
-
-if SHIELD_CORNE_LEFT || SHIELD_CORNE_RIGHT
-
-config ZMK_SPLIT
-	default y
- 
 if ZMK_DISPLAY
 
 config I2C
@@ -38,7 +29,7 @@ config LVGL_VDB_SIZE
 	default 64
 
 config LVGL_DPI
-	default 120
+	default 148
 
 config LVGL_BITS_PER_PIXEL
 	default 1
@@ -49,4 +40,4 @@ endchoice
 
 endif # LVGL
 
-endif
+endif # SHIELD_PSN_DIGIPAD

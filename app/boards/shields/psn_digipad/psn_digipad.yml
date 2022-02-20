@@ -1,0 +1,11 @@
+file_format: "1"
+id: psn_digipad
+name: psn_digipad
+type: shield
+url: https://github.com/piaosn
+requires: [pro_micro]
+exposes: [i2c_oled]
+features:
+  - keys
+  - display
+  - underglow
