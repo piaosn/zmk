@@ -1,0 +1,14 @@
+identifier: bluemicro_v2_1
+name: BlueMicro_V2_1
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - adc
+  - ble
+  - ieee802154
+  - pwm
+  - watchdog

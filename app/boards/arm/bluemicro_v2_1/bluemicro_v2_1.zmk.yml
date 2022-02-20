@@ -1,0 +1,9 @@
+file_format: "1"
+id: bluemicro_v2_1
+name: BlueMicro v2_1
+type: board
+arch: arm
+outputs:
+  - ble
+url: https://nrf52.jpconstantineau.com/docs/bluemicro_v2_1/
+exposes: [pro_micro]

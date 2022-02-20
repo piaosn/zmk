@@ -1,0 +1,8 @@
+# BlueMicro840 board configuration
+
+# Copyright (c) 2020 Pete Johanson, Derek Schmell
+# SPDX-License-Identifier: MIT
+
+config BOARD_BLUEMICRO_V2_1
+	bool "BlueMicro_V2_1"
+	depends on SOC_NRF52832_QFAA
