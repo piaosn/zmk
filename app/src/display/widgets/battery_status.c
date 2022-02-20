@@ -27,14 +27,15 @@ struct battery_status_state {
 };
 
 static void set_battery_symbol(lv_obj_t *label, struct battery_status_state state) {
-    char text[2] = "  ";
+    char text[8] = "";
 
     uint8_t level = state.level;
 
 #if IS_ENABLED(CONFIG_USB)
     if (state.usb_present) {
-        strcpy(text, LV_SYMBOL_CHARGE);
+        strcpy(text, LV_SYMBOL_CHARGE " ");
     }
+    // strcat(text, " ");
 #endif /* IS_ENABLED(CONFIG_USB) */
 
     if (level > 95) {

@@ -9,6 +9,12 @@ config ZMK_WIDGET_LAYER_STATUS
     depends on !ZMK_SPLIT || ZMK_SPLIT_BLE_ROLE_CENTRAL
     select LVGL_USE_LABEL
 
+config ZMK_WIDGET_LAYER_INDICATOR
+    bool "Widget for highest, active layer using small icons"
+    default y
+    depends on !ZMK_SPLIT || ZMK_SPLIT_BLE_ROLE_CENTRAL
+    select LVGL_USE_LABEL
+
 config ZMK_WIDGET_BATTERY_STATUS
     bool "Widget for battery charge information, using small icons"
     depends on BT
