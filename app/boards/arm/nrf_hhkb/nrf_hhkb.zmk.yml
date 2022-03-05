@@ -1,6 +1,6 @@
 file_format: "1"
 id: nrf_hhkb
-name: Nrf HHKB Controller
+name: NRF_HHKB Controller
 type: board
 arch: arm
 outputs:

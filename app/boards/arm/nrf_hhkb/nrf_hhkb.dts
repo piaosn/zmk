@@ -7,8 +7,8 @@
 /dts-v1/;
 #include <nordic/nrf52840_qiaa.dtsi>
 
-#include "keymap.dtsi"
-#include "display.dtsi"
+#include "dts_kscan_hhkb.dtsi"
+#include "dts_display.dtsi"
 
 / {
 	model = "nrf_hhkb";
@@ -37,8 +37,8 @@
 	vbatt {
 		compatible = "zmk,battery-voltage-divider";
 		label = "BATTERY";
-		io-channels = <&adc 2>;
-		output-ohms = <2000000>;
+		io-channels = <&adc 0>;
+		output-ohms = <820000>;
 		full-ohms = <(2000000 + 820000)>;
 	};
 
