@@ -10,3 +10,5 @@ zephyr_library_sources_ifdef(CONFIG_ZMK_KSCAN_GPIO_DRIVER kscan_gpio_direct.c)
 zephyr_library_sources_ifdef(CONFIG_ZMK_KSCAN_GPIO_DRIVER kscan_gpio_demux.c)
 zephyr_library_sources_ifdef(CONFIG_ZMK_KSCAN_MOCK_DRIVER kscan_mock.c)
 zephyr_library_sources_ifdef(CONFIG_ZMK_KSCAN_COMPOSITE_DRIVER kscan_composite.c)
+
+zephyr_library_sources_ifdef(CONFIG_ZMK_KSCAN_HHKB_DRIVER kscan_hhkb.c)

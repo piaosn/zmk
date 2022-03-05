@@ -1,0 +1,47 @@
+# Copyright (c) 2022, Paul Park
+# SPDX-License-Identifier: MIT
+
+description: HHKB keyboard matrix controller
+
+compatible: "zmk,kscan-hhkb"
+
+include: kscan.yaml
+
+properties:
+  row0-gpios:
+    type: phandle-array
+    required: true
+  row1-gpios:
+    type: phandle-array
+    required: true
+  row2-gpios:
+    type: phandle-array
+    required: true
+  col0-gpios:
+    type: phandle-array
+    required: true
+  col1-gpios:
+    type: phandle-array
+    required: true
+  col2-gpios:
+    type: phandle-array
+    required: true
+  col-en-gpios:
+    type: phandle-array
+    required: true
+  hys-gpios:
+    type: phandle-array
+    required: true
+  key-gpios:
+    type: phandle-array
+    required: true
+  row-en0-gpios:
+    type: phandle-array
+    required: true
+  row-en1-gpios:
+    type: phandle-array
+    required: true
+  poll-period-ms:
+    type: int
+    default: 10
+    description: Time between reads in milliseconds when no key is pressed and ZMK_KSCAN_MATRIX_POLLING is enabled.

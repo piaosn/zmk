@@ -34,6 +34,11 @@ config ZMK_KSCAN_DEBOUNCE_RELEASE_MS
 
 endif
 
+config ZMK_KSCAN_HHKB_DRIVER
+	bool "Enable kscan driver for HHKB to detect key presses"
+	default n
+	select GPIO
+
 config ZMK_KSCAN_INIT_PRIORITY
 	int "Keyboard scan driver init priority"
 	default 40
