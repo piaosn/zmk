@@ -1,0 +1,8 @@
+# nrf_hhkb board configuration
+
+# Copyright (c) 2022 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+config BOARD_NRF_HHKB
+	bool "nrf_hhkb"
+	depends on SOC_NRF52840_QIAA
