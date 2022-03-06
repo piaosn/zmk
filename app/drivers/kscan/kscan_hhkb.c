@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2021 The ZMK Contributors
+ * Copyright (c) 2020-2022 The ZMK Contributors
  *
  * SPDX-License-Identifier: MIT
  */
@@ -19,6 +19,8 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define DT_DRV_COMPAT zmk_kscan_hhkb
+
+enum zmk_activity_state power_state = ZMK_ACTIVITY_ACTIVE;
 
 // #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
@@ -54,10 +56,14 @@ struct kscan_matrix_config {
     const struct kscan_gpio_dt_spec col_en;
     const struct kscan_gpio_dt_spec hys;
     const struct kscan_gpio_dt_spec key;
+    const struct kscan_gpio_dt_spec power_ctl;
+    const bool power_ctl_en;
 
     const uint8_t row_len;
     const uint8_t col_len;
     int32_t poll_period_ms;
+
+    enum zmk_activity_state power_state;
 };
 
 /**
@@ -72,7 +78,7 @@ static void kscan_matrix_read_continue(const struct device *dev) {
     struct kscan_matrix_data *data = dev->data;
 
     // data->scan_time += config->debounce_scan_period_ms;
-    data->scan_time += 1;
+    data->scan_time += 2;
 
     // TODO (Zephyr 2.6): use k_work_reschedule()
     k_delayed_work_cancel(&data->work);
@@ -86,6 +92,18 @@ static void kscan_matrix_read_end(const struct device *dev) {
     data->scan_time += config->poll_period_ms;
 
     // Return to polling slowly.
+    // TODO (Zephyr 2.6): use k_work_reschedule()
+    k_delayed_work_cancel(&data->work);
+    k_delayed_work_submit(&data->work, K_TIMEOUT_ABS_MS(data->scan_time));
+}
+
+static void kscan_matrix_read_inactive(const struct device *dev) {
+    const struct kscan_matrix_config *config = dev->config;
+    struct kscan_matrix_data *data = dev->data;
+
+    // scan at 1Hz
+    data->scan_time += 1000;
+
     // TODO (Zephyr 2.6): use k_work_reschedule()
     k_delayed_work_cancel(&data->work);
     k_delayed_work_submit(&data->work, K_TIMEOUT_ABS_MS(data->scan_time));
@@ -106,6 +124,14 @@ static int min(int a, int b) {
 static int kscan_matrix_read(const struct device *dev) {
     struct kscan_matrix_data *data = dev->data;
     const struct kscan_matrix_config *config = dev->config;
+
+    // Enable power for hhkb matrix
+    if (config->power_ctl_en) {
+        gpio_pin_set(config->power_ctl.port, config->power_ctl.pin, 1);
+        if (power_state == ZMK_ACTIVITY_IDLE) {
+            k_msleep(1);
+        }
+    }
 
     // int err;
     bool prev_is_active = false;
@@ -174,7 +200,13 @@ static int kscan_matrix_read(const struct device *dev) {
         kscan_matrix_read_continue(dev);
     } else {
         // All keys are released. Return to normal.
-        kscan_matrix_read_end(dev);
+        // Enable power for hhkb matrix
+        if (config->power_ctl_en && power_state == ZMK_ACTIVITY_IDLE) {
+            gpio_pin_set(config->power_ctl.port, config->power_ctl.pin, 0);
+            kscan_matrix_read_inactive(dev);
+        } else {
+            kscan_matrix_read_end(dev);
+        }
     }
     return 0;
 }
@@ -267,29 +299,27 @@ static int kscan_matrix_init(const struct device *dev) {
     kscan_matrix_init_output_inst(dev, &config->col2);
     kscan_matrix_init_output_inst(dev, &config->col_en);
     kscan_matrix_init_output_inst(dev, &config->hys);
-
-    // gpio_pin_set(gpio->port, gpio->pin, value);
+    kscan_matrix_init_output_inst(dev, &config->power_ctl);
 
     k_delayed_work_init(&data->work, kscan_matrix_work_handler);
-
     return 0;
 }
 
+#if DT_INST_PROP(inst, power_ctl_enable)
 static int kscan_hhkb_event_listener(const zmk_event_t *eh) {
     if (as_zmk_activity_state_changed(eh)) {
         static bool prev_state = false;
-        enum zmk_activity_state state = zmk_activity_get_state();
+        power_state = zmk_activity_get_state();
         // == ZMK_ACTIVITY_ACTIVE
-        LOG_DBG("Keyboard active event: %d", state);
+        LOG_DBG("Keyboard active event: %d", power_state);
         return 0;
     }
 
     return -ENOTSUP;
 }
-
 ZMK_LISTENER(kscan_hhkb, kscan_hhkb_event_listener);
 ZMK_SUBSCRIPTION(kscan_hhkb, zmk_activity_state_changed);
-
+#endif //DT_INST_PROP(inst, power_ctl_enable)
 
 static const struct kscan_driver_api kscan_matrix_api = {
     .config = kscan_matrix_configure,
@@ -306,8 +336,8 @@ static const struct kscan_driver_api kscan_matrix_api = {
 
 #define KSCAN_MATRIX_INIT(inst)                                                    \
     static struct kscan_matrix_config kscan_matrix_config_##inst = {               \
-        .row_len = 8,\
-        .col_len = 8,\
+        .row_len = 8,                                                              \
+        .col_len = 8,                                                              \
         .row0 = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), row0_gpios),                 \
         .row1 = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), row1_gpios),                 \
         .row2 = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), row2_gpios),                 \
@@ -319,9 +349,12 @@ static const struct kscan_driver_api kscan_matrix_api = {
         .key = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), key_gpios),                   \
         .row_en0 = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), row_en0_gpios),           \
         .row_en1 = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), row_en1_gpios),           \
+        .power_ctl = KSCAN_GPIO_DT_SPEC(DT_DRV_INST(inst), power_ctl_gpios),       \
+        .power_ctl_en = DT_INST_PROP(inst, power_ctl_enable),                      \
+        .power_state = ZMK_ACTIVITY_ACTIVE,                                        \
         .poll_period_ms = DT_INST_PROP(inst, poll_period_ms),                      \
     };                                                                             \
-    static bool kscan_matrix_state_##inst[8*8] = {false};                                    \
+    static bool kscan_matrix_state_##inst[8*8] = {false};                          \
     static struct kscan_matrix_data kscan_matrix_data_##inst = {                   \
         .matrix_state = kscan_matrix_state_##inst,                                 \
     };                                                                             \

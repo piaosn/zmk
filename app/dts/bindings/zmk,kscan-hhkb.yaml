@@ -41,6 +41,12 @@ properties:
   row-en1-gpios:
     type: phandle-array
     required: true
+  power-ctl-enable:
+    type: boolean
+    required: false
+  power-ctl-gpios:
+    type: phandle-array
+    required: true
   poll-period-ms:
     type: int
     default: 10
